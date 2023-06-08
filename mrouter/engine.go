@@ -1,11 +1,10 @@
 package mrouter
 
 import (
-	"context"
 	"encoding/json"
 )
 
-type HandlerFunc func(ctx context.Context)
+type HandlerFunc func(ctx *Context)
 type MessageRoutingFn func(router *Engine)
 
 type Engine struct {
@@ -40,8 +39,7 @@ func (_this *Engine) Route(message []byte) error {
 	}
 
 	if handler, ok := _this.Handlers[req.Func]; ok {
-		ctx := context.WithValue(context.Background(), "data", req)
-		handler(ctx)
+		handler(WithValue(req))
 	}
 
 	return nil
@@ -56,8 +54,7 @@ func (_this *Engine) RouteChannel(_channel string, message []byte) error {
 
 	if channel, ok := _this.ChannelHandler[_channel]; ok {
 		if handler, ok := channel[req.Func]; ok {
-			ctx := context.WithValue(context.Background(), "data", req)
-			handler(ctx)
+			handler(WithValue(req))
 		}
 	}
 
