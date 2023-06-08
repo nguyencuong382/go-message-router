@@ -1,3 +1,3 @@
-module go-messessing-router
+module go-message-router
 
 go 1.18
