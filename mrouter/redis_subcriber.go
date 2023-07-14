@@ -6,28 +6,28 @@ import (
 	"go.uber.org/dig"
 )
 
-type server struct {
+type redisSubscriber struct {
 	routing MessageRoutingFn
 	router  *Engine
 	redis   *redis.Client
 }
 
-type Params struct {
+type RedisSubscriberArgs struct {
 	dig.In
 	Routing MessageRoutingFn
 	Router  *Engine
 	Redis   *redis.Client
 }
 
-func NewRedisSubscriber(params Params) ISubscriber {
-	return &server{
+func NewRedisSubscriber(params RedisSubscriberArgs) ISubscriber {
+	return &redisSubscriber{
 		router:  params.Router,
 		routing: params.Routing,
 		redis:   params.Redis,
 	}
 }
 
-func (_this *server) Open(channels []string) error {
+func (_this *redisSubscriber) Open(channels []string) error {
 	_this.routing(_this.router)
 	for _, channel := range channels {
 		_this.Run(channel)
@@ -35,7 +35,7 @@ func (_this *server) Open(channels []string) error {
 	return nil
 }
 
-func (_this *server) Run(channel string) {
+func (_this *redisSubscriber) Run(channel string) {
 	go func() {
 		ctx := context.Background()
 		subscriber := _this.redis.Subscribe(ctx, channel)
