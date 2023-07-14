@@ -14,8 +14,8 @@ func WithValue(value interface{}) *Context {
 		ctx: context.WithValue(context.Background(), "data", value),
 	}
 }
-func (_this *Context) Value() PublishReq {
-	return _this.ctx.Value("data").(PublishReq)
+func (_this *Context) Value() Message {
+	return _this.ctx.Value("data").(Message)
 }
 
 func (_this *Context) BindData(param interface{}) error {

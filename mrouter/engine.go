@@ -32,7 +32,7 @@ func (_this *Engine) RegisterWithChannel(channel string, _func string, handler H
 }
 
 func (_this *Engine) Route(message []byte) error {
-	var req PublishReq
+	var req Message
 	err := json.Unmarshal(message, &req)
 	if err != nil {
 		return nil
@@ -46,7 +46,7 @@ func (_this *Engine) Route(message []byte) error {
 }
 
 func (_this *Engine) RouteChannel(_channel string, message []byte) error {
-	var req PublishReq
+	var req Message
 	err := json.Unmarshal(message, &req)
 	if err != nil {
 		return nil
