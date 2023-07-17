@@ -5,5 +5,5 @@ type ISubscriber interface {
 }
 
 type IPublisher interface {
-	Publish(channel string, value interface{}) error
+	Publish(channel string, value interface{}, json bool) error
 }

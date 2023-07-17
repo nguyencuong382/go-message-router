@@ -2,8 +2,8 @@ package mrouter
 
 import (
 	"context"
-	"github.com/redis/go-redis/v9"
 	"go.uber.org/dig"
+	"github.com/redis/go-redis/v9"
 )
 
 type redisSubscriber struct {
@@ -47,7 +47,7 @@ func (_this *redisSubscriber) Run(channel string) {
 			switch msg := interface{}(msg).(type) {
 			case *redis.Message:
 				//log.Info("Received msg on channel [", msg.Channel, "]")
-				err := _this.router.RouteChannel(channel, []byte(msg.Payload))
+				err := _this.router.Route(channel, []byte(msg.Payload))
 				if err != nil {
 					//log.Info("Error when handling [", msg.Channel, "]", err)
 				}
