@@ -46,7 +46,7 @@ func (_this *redisSubscriber) Run(channels ...string) {
 			switch interface{}(msg).(type) {
 			case *redis.Message:
 				//log.Info("Received msg on channel [", msg.Channel, "]")
-				err := _this.router.RouteChannel(msg.Channel, []byte(msg.Payload))
+				err := _this.router.Route(msg.Channel, []byte(msg.Payload))
 				if err != nil {
 					//log.Info("Error when handling [", msg.Channel, "]", err)
 				}

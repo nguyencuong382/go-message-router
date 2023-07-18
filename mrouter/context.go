@@ -14,12 +14,17 @@ func WithValue(value interface{}) *Context {
 		ctx: context.WithValue(context.Background(), "data", value),
 	}
 }
-func (_this *Context) Value() Message {
+
+func (_this *Context) Message() Message {
 	return _this.ctx.Value("data").(Message)
 }
 
+func (_this *Context) Value() any {
+	return _this.ctx.Value("data")
+}
+
 func (_this *Context) BindData(param interface{}) error {
-	value := _this.Value()
+	value := _this.Message()
 	i, _ := json.Marshal(value.Data)
 	return json.Unmarshal(i, param)
 }
