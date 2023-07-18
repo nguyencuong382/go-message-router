@@ -1,25 +1,26 @@
-package mrouter
+package mredis
 
 import (
 	"context"
+	"github.com/nguyencuong382/go-message-router/mrouter"
 	"github.com/redis/go-redis/v9"
 	"go.uber.org/dig"
 )
 
 type redisSubscriber struct {
-	routing MessageRoutingFn
-	router  *Engine
-	redis   *redis.Client
+	routing mrouter.MessageRoutingFn
+	router  *mrouter.Engine
+	redis   IRedisClient
 }
 
 type RedisSubscriberArgs struct {
 	dig.In
-	Routing MessageRoutingFn
-	Router  *Engine
-	Redis   *redis.Client
+	Routing mrouter.MessageRoutingFn
+	Router  *mrouter.Engine
+	Redis   IRedisClient
 }
 
-func NewRedisSubscriber(params RedisSubscriberArgs) ISubscriber {
+func NewRedisSubscriber(params RedisSubscriberArgs) mrouter.ISubscriber {
 	return &redisSubscriber{
 		router:  params.Router,
 		routing: params.Routing,
@@ -29,25 +30,23 @@ func NewRedisSubscriber(params RedisSubscriberArgs) ISubscriber {
 
 func (_this *redisSubscriber) Open(channels []string) error {
 	_this.routing(_this.router)
-	for _, channel := range channels {
-		_this.Run(channel)
-	}
+	_this.Run(channels...)
 	return nil
 }
 
-func (_this *redisSubscriber) Run(channel string) {
+func (_this *redisSubscriber) Run(channels ...string) {
 	go func() {
 		ctx := context.Background()
-		subscriber := _this.redis.Subscribe(ctx, channel)
+		subscriber := _this.redis.Subscribe(ctx, channels...)
 		for {
 			msg, err := subscriber.ReceiveMessage(ctx)
 			if err != nil {
 				panic(err)
 			}
-			switch msg := interface{}(msg).(type) {
+			switch interface{}(msg).(type) {
 			case *redis.Message:
 				//log.Info("Received msg on channel [", msg.Channel, "]")
-				err := _this.router.RouteChannel(channel, []byte(msg.Payload))
+				err := _this.router.RouteChannel(msg.Channel, []byte(msg.Payload))
 				if err != nil {
 					//log.Info("Error when handling [", msg.Channel, "]", err)
 				}
