@@ -7,7 +7,7 @@ import (
 
 type IRedisClient interface {
 	Set(ctx context.Context, key string, value interface{}, expireTime int64) error
-	Get(ctx context.Context, key string, value interface{}) (interface{}, error)
+	Get(ctx context.Context, key string) (interface{}, error)
 	Del(ctx context.Context, key string) (int64, error)
 	Expire(ctx context.Context, key string, expire int64) (bool, error)
 	Ping(ctx context.Context) error
@@ -15,5 +15,14 @@ type IRedisClient interface {
 	Incr(ctx context.Context, key string) (int64, error)
 	TTL(ctx context.Context, key string) (int64, error)
 	Publish(ctx context.Context, channel string, value interface{}) error
-	Subscribe(ctx context.Context, channel ...string) *redis.PubSub
+	Subscribe(ctx context.Context, channels ...string) *redis.PubSub
+}
+
+type RedisConfig struct {
+	Host       *string
+	Password   string
+	DB         int
+	Port       *string
+	Addrs      []string
+	MasterName *string
 }
