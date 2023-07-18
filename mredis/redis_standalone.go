@@ -11,8 +11,7 @@ type redisCmd struct {
 	client *redis.Client
 }
 
-// NewRedisStandalone ...
-func NewRedisStandalone(config *RedisConfig) (IRedisClient, error) {
+func NewRedisStandaloneClient(config *RedisConfig) (IRedisClient, error) {
 	client := redis.NewClient(&redis.Options{
 		Addr:     fmt.Sprintf("%s:%s", *config.Host, *config.Port),
 		Password: config.Password,
@@ -41,8 +40,8 @@ func (_this *redisCmd) Set(ctx context.Context, key string, value interface{}, e
 	return err
 }
 
-func (_this *redisCmd) Get(ctx context.Context, key string) (interface{}, error) {
-	return _this.client.Get(ctx, key).Result()
+func (_this *redisCmd) Get(ctx context.Context, key string) *redis.StringCmd {
+	return _this.client.Get(ctx, key)
 }
 
 func (_this *redisCmd) Del(ctx context.Context, key string) (int64, error) {

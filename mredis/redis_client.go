@@ -7,7 +7,7 @@ import (
 
 type IRedisClient interface {
 	Set(ctx context.Context, key string, value interface{}, expireTime int64) error
-	Get(ctx context.Context, key string) (interface{}, error)
+	Get(ctx context.Context, key string) *redis.StringCmd
 	Del(ctx context.Context, key string) (int64, error)
 	Expire(ctx context.Context, key string, expire int64) (bool, error)
 	Ping(ctx context.Context) error

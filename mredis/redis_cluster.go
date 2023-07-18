@@ -40,8 +40,8 @@ func (_this *redisClusterClient) Set(ctx context.Context, key string, value inte
 	return _this.client.Set(ctx, key, value, time.Duration(expireTime)*time.Second).Err()
 }
 
-func (_this *redisClusterClient) Get(ctx context.Context, key string) (interface{}, error) {
-	return _this.client.Get(ctx, key).Result()
+func (_this *redisClusterClient) Get(ctx context.Context, key string) *redis.StringCmd {
+	return _this.client.Get(ctx, key)
 }
 
 func (_this *redisClusterClient) Del(ctx context.Context, key string) (int64, error) {
