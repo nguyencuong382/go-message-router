@@ -40,15 +40,15 @@ func (_this *redisClusterClient) Ping(ctx context.Context) error {
 }
 
 func (_this *redisClusterClient) Set(ctx context.Context, key string, value interface{}, expireTime int64) error {
-	return _this.client.Set(ctx, _this.GetKey(key), value, time.Duration(expireTime)*time.Second).Err()
+	return _this.client.Set(ctx, _this.GetKeyName(key), value, time.Duration(expireTime)*time.Second).Err()
 }
 
 func (_this *redisClusterClient) Get(ctx context.Context, key string) *redis.StringCmd {
-	return _this.client.Get(ctx, _this.GetKey(key))
+	return _this.client.Get(ctx, _this.GetKeyName(key))
 }
 
 func (_this *redisClusterClient) Del(ctx context.Context, key string) (int64, error) {
-	return _this.client.Del(ctx, _this.GetKey(key)).Result()
+	return _this.client.Del(ctx, _this.GetKeyName(key)).Result()
 }
 
 func (_this *redisClusterClient) Expire(ctx context.Context, key string, expire int64) (bool, error) {
@@ -63,7 +63,7 @@ func (_this *redisClusterClient) Expire(ctx context.Context, key string, expire 
 }
 
 func (_this *redisClusterClient) Exist(ctx context.Context, key string) (bool, error) {
-	value, err := _this.client.Exists(ctx, _this.GetKey(key)).Result()
+	value, err := _this.client.Exists(ctx, _this.GetKeyName(key)).Result()
 	if err != nil {
 		return false, err
 	}
@@ -75,7 +75,7 @@ func (_this *redisClusterClient) Incr(ctx context.Context, key string) (int64, e
 }
 
 func (_this *redisClusterClient) TTL(ctx context.Context, key string) (int64, error) {
-	result, err := _this.client.TTL(ctx, _this.GetKey(key)).Result()
+	result, err := _this.client.TTL(ctx, _this.GetKeyName(key)).Result()
 	if err != nil {
 		return 0, err
 	}
@@ -83,26 +83,26 @@ func (_this *redisClusterClient) TTL(ctx context.Context, key string) (int64, er
 }
 
 func (_this *redisClusterClient) Publish(ctx context.Context, channel string, value interface{}) error {
-	return _this.client.Publish(ctx, _this.GetChannel(channel), value).Err()
+	return _this.client.Publish(ctx, _this.GetChannelName(channel), value).Err()
 }
 
 func (_this *redisClusterClient) Subscribe(ctx context.Context, channels ...string) *redis.PubSub {
 	var _channels []string
 	for _, c := range channels {
-		_channels = append(_channels, _this.GetChannel(c))
+		_channels = append(_channels, _this.GetChannelName(c))
 	}
 	return _this.client.Subscribe(ctx, _channels...)
 }
 
-func (_this *redisClusterClient) GetKey(key string) string {
+func (_this *redisClusterClient) GetKeyName(key string) string {
 	if _this.config.KeyPrefix != nil {
 		return fmt.Sprintf("%s-%s", *_this.config.KeyPrefix, key)
 	}
 	return key
 }
 
-func (_this *redisClusterClient) GetChannel(key string) string {
-	if _this.config.KeyPrefix != nil {
+func (_this *redisClusterClient) GetChannelName(key string) string {
+	if _this.config.ChannelPrefix != nil {
 		return fmt.Sprintf("%s-%s", *_this.config.ChannelPrefix, key)
 	}
 	return key

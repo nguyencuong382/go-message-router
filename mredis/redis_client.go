@@ -16,6 +16,8 @@ type IRedisClient interface {
 	TTL(ctx context.Context, key string) (int64, error)
 	Publish(ctx context.Context, channel string, value interface{}) error
 	Subscribe(ctx context.Context, channels ...string) *redis.PubSub
+	GetKeyName(key string) string
+	GetChannelName(channel string) string
 }
 
 type RedisConfig struct {
