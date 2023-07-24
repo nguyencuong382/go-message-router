@@ -29,4 +29,5 @@ type RedisConfig struct {
 	MasterName    *string
 	KeyPrefix     *string
 	ChannelPrefix *string
+	Username      *string
 }

@@ -13,10 +13,15 @@ type redisClusterClient struct {
 }
 
 func NewRedisClusterClient(config *RedisConfig) (IRedisClient, error) {
-	rdb := redis.NewClusterClient(&redis.ClusterOptions{
+	options := redis.ClusterOptions{
 		Addrs:    config.Addrs,
 		Password: config.Password,
-	})
+	}
+	if config.Username != nil {
+		options.Username = *config.Username
+	}
+
+	rdb := redis.NewClusterClient(&options)
 
 	ctx := context.Background()
 	err := rdb.ForEachShard(ctx, func(ctx context.Context, shard *redis.Client) error {

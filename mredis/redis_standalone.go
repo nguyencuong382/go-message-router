@@ -13,11 +13,15 @@ type redisCmd struct {
 }
 
 func NewRedisStandaloneClient(config *RedisConfig) (IRedisClient, error) {
-	client := redis.NewClient(&redis.Options{
+	options := redis.Options{
 		Addr:     fmt.Sprintf("%s:%s", *config.Host, *config.Port),
 		Password: config.Password,
 		DB:       config.DB,
-	})
+	}
+	if config.Username != nil {
+		options.Username = *config.Username
+	}
+	client := redis.NewClient(&options)
 
 	ctx := context.Background()
 	if _, err := client.Ping(ctx).Result(); err != nil {
