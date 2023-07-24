@@ -19,10 +19,12 @@ type IRedisClient interface {
 }
 
 type RedisConfig struct {
-	Host       *string
-	Password   string
-	DB         int
-	Port       *string
-	Addrs      []string
-	MasterName *string
+	Host          *string
+	Password      string
+	DB            int
+	Port          *string
+	Addrs         []string
+	MasterName    *string
+	KeyPrefix     *string
+	ChannelPrefix *string
 }

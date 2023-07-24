@@ -9,6 +9,7 @@ import (
 
 type redisCmd struct {
 	client *redis.Client
+	config *RedisConfig
 }
 
 func NewRedisStandaloneClient(config *RedisConfig) (IRedisClient, error) {
@@ -25,6 +26,7 @@ func NewRedisStandaloneClient(config *RedisConfig) (IRedisClient, error) {
 
 	return &redisCmd{
 		client: client,
+		config: config,
 	}, nil
 }
 
@@ -36,20 +38,20 @@ func (_this *redisCmd) Ping(ctx context.Context) error {
 }
 
 func (_this *redisCmd) Set(ctx context.Context, key string, value interface{}, expireTime int64) error {
-	_, err := _this.client.Set(ctx, key, value, time.Duration(expireTime)*time.Second).Result()
+	_, err := _this.client.Set(ctx, _this.GetKey(key), value, time.Duration(expireTime)*time.Second).Result()
 	return err
 }
 
 func (_this *redisCmd) Get(ctx context.Context, key string) *redis.StringCmd {
-	return _this.client.Get(ctx, key)
+	return _this.client.Get(ctx, _this.GetKey(key))
 }
 
 func (_this *redisCmd) Del(ctx context.Context, key string) (int64, error) {
-	return _this.client.Del(ctx, key).Result()
+	return _this.client.Del(ctx, _this.GetKey(key)).Result()
 }
 
 func (_this *redisCmd) Expire(ctx context.Context, key string, expire int64) (bool, error) {
-	value, err := _this.client.Expire(ctx, key, time.Duration(expire)*time.Second).Result()
+	value, err := _this.client.Expire(ctx, _this.GetKey(key), time.Duration(expire)*time.Second).Result()
 	if err != nil {
 		if err == redis.Nil {
 			return false, nil
@@ -60,7 +62,7 @@ func (_this *redisCmd) Expire(ctx context.Context, key string, expire int64) (bo
 }
 
 func (_this *redisCmd) Exist(ctx context.Context, key string) (bool, error) {
-	value, err := _this.client.Exists(ctx, key).Result()
+	value, err := _this.client.Exists(ctx, _this.GetKey(key)).Result()
 	if err != nil {
 		return false, err
 	}
@@ -68,7 +70,7 @@ func (_this *redisCmd) Exist(ctx context.Context, key string) (bool, error) {
 }
 
 func (_this *redisCmd) Incr(ctx context.Context, key string) (int64, error) {
-	result, err := _this.client.Incr(ctx, key).Result()
+	result, err := _this.client.Incr(ctx, _this.GetKey(key)).Result()
 	if err != nil {
 		return 0, err
 	}
@@ -76,7 +78,7 @@ func (_this *redisCmd) Incr(ctx context.Context, key string) (int64, error) {
 }
 
 func (_this *redisCmd) TTL(ctx context.Context, key string) (int64, error) {
-	result, err := _this.client.TTL(ctx, key).Result()
+	result, err := _this.client.TTL(ctx, _this.GetKey(key)).Result()
 	if err != nil {
 		return 0, err
 	}
@@ -84,9 +86,27 @@ func (_this *redisCmd) TTL(ctx context.Context, key string) (int64, error) {
 }
 
 func (_this *redisCmd) Publish(ctx context.Context, channel string, value interface{}) error {
-	return _this.client.Publish(ctx, channel, value).Err()
+	return _this.client.Publish(ctx, _this.GetChannel(channel), value).Err()
 }
 
 func (_this *redisCmd) Subscribe(ctx context.Context, channels ...string) *redis.PubSub {
+	var _channels []string
+	for _, c := range channels {
+		_channels = append(_channels, _this.GetChannel(c))
+	}
 	return _this.client.Subscribe(ctx, channels...)
+}
+
+func (_this *redisCmd) GetKey(key string) string {
+	if _this.config.KeyPrefix != nil {
+		return fmt.Sprintf("%s-%s", *_this.config.KeyPrefix, key)
+	}
+	return key
+}
+
+func (_this *redisCmd) GetChannel(key string) string {
+	if _this.config.KeyPrefix != nil {
+		return fmt.Sprintf("%s-%s", *_this.config.ChannelPrefix, key)
+	}
+	return key
 }
