@@ -24,9 +24,7 @@ func NewRedisClusterClient(config *RedisConfig) (IRedisClient, error) {
 	rdb := redis.NewClusterClient(&options)
 
 	ctx := context.Background()
-	err := rdb.ForEachShard(ctx, func(ctx context.Context, shard *redis.Client) error {
-		return shard.Ping(ctx).Err()
-	})
+	err := rdb.Ping(ctx).Err()
 	if err != nil {
 		return nil, err
 	}
