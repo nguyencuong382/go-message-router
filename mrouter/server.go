@@ -4,6 +4,13 @@ type ISubscriber interface {
 	Open(channels []string) error
 }
 
+type PublishReq struct {
+	Channel string
+	Value   interface{}
+	Json    bool
+	URL     string
+}
+
 type IPublisher interface {
-	Publish(channel string, value interface{}, json bool) error
+	Publish(req *PublishReq) error
 }

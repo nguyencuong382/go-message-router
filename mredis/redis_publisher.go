@@ -22,18 +22,18 @@ func NewRedisPublisher(args RedisPublishArgs) mrouter.IPublisher {
 	}
 }
 
-func (_this *redisPub) Publish(channel string, value interface{}, isJson bool) error {
+func (_this *redisPub) Publish(req *mrouter.PublishReq) error {
 	var b1ByteValue []byte
 	var err error
-	if isJson {
-		b1ByteValue, err = json.Marshal(value)
+	if req.Json {
+		b1ByteValue, err = json.Marshal(req.Value)
 		if err != nil {
 			return err
 		}
 	} else {
-		b1ByteValue = value.([]byte)
+		b1ByteValue = req.Value.([]byte)
 	}
 
 	ctx := context.Background()
-	return _this.redis.Publish(ctx, channel, b1ByteValue)
+	return _this.redis.Publish(ctx, req.Channel, b1ByteValue)
 }
