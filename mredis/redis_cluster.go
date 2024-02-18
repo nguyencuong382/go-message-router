@@ -110,3 +110,37 @@ func (_this *redisClusterClient) GetChannelName(key string) string {
 	}
 	return key
 }
+
+func (_this *redisClusterClient) DelWithPrefix(ctx context.Context, prefix string) (int64, error) {
+	var keysDeleted int64
+
+	// Initialize the cursor
+	var cursor uint64
+
+	for {
+		// Scan for keys with the specified prefix
+		keys, nextCursor, err := _this.client.Scan(ctx, cursor, fmt.Sprintf("%s*", _this.GetKeyName(prefix)), 10).Result()
+		if err != nil {
+			return keysDeleted, err
+		}
+
+		// Delete the keys
+		for _, key := range keys {
+			if err := _this.client.Del(ctx, key).Err(); err != nil {
+				return keysDeleted, err
+			} else {
+				keysDeleted++
+			}
+		}
+
+		// Update the cursor for the next iteration
+		cursor = nextCursor
+
+		// Check if we reached the end of the iteration
+		if cursor == 0 {
+			break
+		}
+	}
+
+	return keysDeleted, nil
+}
