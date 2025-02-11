@@ -5,7 +5,6 @@ import (
 	"github.com/confluentinc/confluent-kafka-go/kafka"
 	"github.com/nguyencuong382/go-message-router/mrouter"
 	"go.uber.org/dig"
-	"time"
 )
 
 type kafkaSubscriber struct {
@@ -41,23 +40,23 @@ func (_this *kafkaSubscriber) Run(channels ...string) {
 		panic(err)
 	}
 
-	go func() {
-		for {
-			msg, err := _this.kafkaConsumer.ReadMessage(time.Second)
-			if err == nil {
-				//log.Info("Received msg on channel [", msg.Channel, "]")
-				fmt.Println("Received msg on channel [", *msg.TopicPartition.Topic, "]")
-				err := _this.router.Route(*msg.TopicPartition.Topic, msg.Value)
-				if err != nil {
-					//log.Info("Error when handling [", msg.Channel, "]", err)
-				}
-
-			} else if !err.(kafka.Error).IsFatal() {
-				// The client will automatically try to recover from all errors.
-				// Timeout is not considered an error because it is raised by
-				// ReadMessage in absence of messages.
-				//fmt.Printf("Consumer error: %v (%v)\n", err, msg)
+	//go func() {
+	for {
+		msg, err := _this.kafkaConsumer.ReadMessage(-1)
+		if err == nil {
+			//log.Info("Received msg on channel [", msg.Channel, "]")
+			fmt.Println("Received msg on channel [", *msg.TopicPartition.Topic, "]")
+			err := _this.router.Route(*msg.TopicPartition.Topic, msg.Value)
+			if err != nil {
+				fmt.Println("Error when handling [", msg.String(), "]", err)
 			}
+
+		} else if !err.(kafka.Error).IsFatal() {
+			// The client will automatically try to recover from all errors.
+			// Timeout is not considered an error because it is raised by
+			// ReadMessage in absence of messages.
+			fmt.Printf("Consumer error: %v (%v)\n", err, msg)
 		}
-	}()
+	}
+	//}()
 }

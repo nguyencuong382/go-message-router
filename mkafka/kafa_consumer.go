@@ -14,6 +14,7 @@ type KafkaConfig struct {
 func NewKafkaConsumer(config *KafkaConfig) (*kafka.Consumer, error) {
 	configMap := kafka.ConfigMap{
 		"bootstrap.servers": fmt.Sprintf("%s:%d", config.Host, config.Port),
+		"auto.offset.reset": "earliest",
 	}
 
 	if config.Group != nil {

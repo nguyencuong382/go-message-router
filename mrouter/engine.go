@@ -32,19 +32,25 @@ func (_this *Engine) RegisterChannelFunction(channel string, _func string, handl
 }
 
 func (_this *Engine) Route(channel string, message []byte) error {
-	var req Message
+	var (
+		req   Message
+		value interface{}
+	)
 	err := json.Unmarshal(message, &req)
 	if err == nil {
-		if handler, ok := _this.Handlers[req.Func]; ok {
-			handler(WithValue(req))
-		}
-		if _channel, ok := _this.ChannelHandler[channel]; ok {
-			if handler, ok := _channel[req.Func]; ok {
-				handler(WithValue(req))
-			}
+		value = req
+	} else {
+		value = message
+	}
+	if handler, ok := _this.Handlers[req.Func]; ok {
+		handler(WithValue(value))
+	}
+	if _channel, ok := _this.ChannelHandler[channel]; ok {
+		if handler, ok := _channel[req.Func]; ok {
+			handler(WithValue(value))
 		}
 	}
-	return _this.RouteChannel(channel, message)
+	return nil
 }
 
 func (_this *Engine) RouteChannel(_channel string, message []byte) error {
