@@ -35,10 +35,16 @@ func (_this *kafkaPub) Publish(req *mrouter.PublishReq) error {
 		b1ByteValue = req.Value.([]byte)
 	}
 
-	err = _this.kafkaProducer.Produce(&kafka.Message{
+	msg := kafka.Message{
 		TopicPartition: kafka.TopicPartition{Topic: &req.Channel, Partition: kafka.PartitionAny},
 		Value:          b1ByteValue,
-	}, nil)
+	}
+
+	if req.ID != "" {
+		msg.Key = []byte(req.ID)
+	}
+
+	err = _this.kafkaProducer.Produce(&msg, nil)
 
 	if err != nil {
 		return err

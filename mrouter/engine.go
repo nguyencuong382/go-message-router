@@ -50,12 +50,12 @@ func (_this *Engine) Route(channel string, message []byte) error {
 			handler(WithValue(value))
 		}
 	}
-	return nil
+	return _this.RouteChannel(channel, value)
 }
 
-func (_this *Engine) RouteChannel(_channel string, message []byte) error {
+func (_this *Engine) RouteChannel(_channel string, value interface{}) error {
 	if handler, ok := _this.Handlers[_channel]; ok {
-		handler(WithValue(message))
+		handler(WithValue(value))
 	}
 	return nil
 }

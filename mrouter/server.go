@@ -5,6 +5,7 @@ type ISubscriber interface {
 }
 
 type PublishReq struct {
+	ID      string
 	Channel string
 	Value   interface{}
 	Json    bool
