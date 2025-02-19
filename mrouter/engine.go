@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 )
 
-type HandlerFunc func(ctx *Context)
+type HandlerFunc func(ctx *Context) error
 type MessageRoutingFn func(router *Engine)
 
 type Engine struct {
@@ -43,11 +43,11 @@ func (_this *Engine) Route(channel string, message []byte) error {
 		value = message
 	}
 	if handler, ok := _this.Handlers[req.Func]; ok {
-		handler(WithValue(value))
+		return handler(WithValue(value))
 	}
 	if _channel, ok := _this.ChannelHandler[channel]; ok {
 		if handler, ok := _channel[req.Func]; ok {
-			handler(WithValue(value))
+			return handler(WithValue(value))
 		}
 	}
 	return _this.RouteChannel(channel, value)
@@ -55,7 +55,7 @@ func (_this *Engine) Route(channel string, message []byte) error {
 
 func (_this *Engine) RouteChannel(_channel string, value interface{}) error {
 	if handler, ok := _this.Handlers[_channel]; ok {
-		handler(WithValue(value))
+		return handler(WithValue(value))
 	}
 	return nil
 }

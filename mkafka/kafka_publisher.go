@@ -2,6 +2,7 @@ package mkafka
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/confluentinc/confluent-kafka-go/kafka"
 	"github.com/nguyencuong382/go-message-router/mrouter"
 	"go.uber.org/dig"
@@ -9,21 +10,23 @@ import (
 
 type kafkaPub struct {
 	kafkaProducer *kafka.Producer
+	config        *KafkaConfig
 }
 
 type KafkaPublishArgs struct {
 	dig.In
 	KafkaProducer *kafka.Producer
+	Config        *KafkaConfig
 }
 
 func NewKafkaPublisher(args KafkaPublishArgs) mrouter.IPublisher {
 	return &kafkaPub{
 		kafkaProducer: args.KafkaProducer,
+		config:        args.Config,
 	}
 }
 
 func (_this *kafkaPub) Publish(req *mrouter.PublishReq) error {
-
 	var b1ByteValue []byte
 	var err error
 	if req.Json {
@@ -35,8 +38,13 @@ func (_this *kafkaPub) Publish(req *mrouter.PublishReq) error {
 		b1ByteValue = req.Value.([]byte)
 	}
 
+	topic := req.Channel
+	if _this.config.KeyPrefix != nil {
+		topic = fmt.Sprintf("%s-%s", *_this.config.KeyPrefix, topic)
+	}
+
 	msg := kafka.Message{
-		TopicPartition: kafka.TopicPartition{Topic: &req.Channel, Partition: kafka.PartitionAny},
+		TopicPartition: kafka.TopicPartition{Topic: &topic, Partition: kafka.PartitionAny},
 		Value:          b1ByteValue,
 	}
 
