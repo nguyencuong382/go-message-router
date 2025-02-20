@@ -28,3 +28,7 @@ func (_this *Context) BindData(param interface{}) error {
 	i, _ := json.Marshal(value.Data)
 	return json.Unmarshal(i, param)
 }
+
+func (_this *Context) Context() context.Context {
+	return _this.ctx
+}
