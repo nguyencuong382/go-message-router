@@ -2,7 +2,6 @@ package mkafka
 
 import (
 	"encoding/json"
-	"fmt"
 	"github.com/confluentinc/confluent-kafka-go/kafka"
 	"github.com/nguyencuong382/go-message-router/mrouter"
 	"go.uber.org/dig"
@@ -40,7 +39,7 @@ func (_this *kafkaPub) Publish(req *mrouter.PublishReq) error {
 
 	topic := req.Channel
 	if _this.config.KeyPrefix != nil {
-		topic = fmt.Sprintf("%s-%s", *_this.config.KeyPrefix, topic)
+		topic = mrouter.MergeKeys(*_this.config.KeyPrefix, topic)
 	}
 
 	msg := kafka.Message{
