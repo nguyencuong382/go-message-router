@@ -35,5 +35,5 @@ func (_this *redisPub) Publish(req *mrouter.PublishReq) error {
 	}
 
 	ctx := context.Background()
-	return _this.redis.Publish(ctx, req.Channel, b1ByteValue)
+	return _this.redis.Publish(ctx, req.Channel, b1ByteValue).Err()
 }
