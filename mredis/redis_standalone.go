@@ -29,7 +29,7 @@ func NewRedisStandaloneClient(config *RedisConfig) (IRedisClient, error) {
 
 	return &redisCmd{
 		BaseRedisClient: &BaseRedisClient{
-			config:  config,
+			Config:  config,
 			Cmdable: client,
 		},
 		client: client,

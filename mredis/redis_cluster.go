@@ -30,7 +30,7 @@ func NewRedisClusterClient(config *RedisConfig) (IRedisClient, error) {
 	return &redisClusterClient{
 		BaseRedisClient: &BaseRedisClient{
 			Cmdable: rdb,
-			config:  config,
+			Config:  config,
 		},
 		client: rdb,
 	}, nil

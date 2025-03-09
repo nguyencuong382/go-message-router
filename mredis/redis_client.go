@@ -11,16 +11,20 @@ import (
 type IRedisSubscribe func(ctx context.Context, channels ...string) *redis.PubSub
 
 type BaseRedisClient struct {
-	config *RedisConfig
+	Config *RedisConfig
 	redis.Cmdable
 }
 
 // Helper function to apply the prefix
 func (_this *BaseRedisClient) prefixedKey(key string) string {
-	if _this.config.KeyPrefix != nil {
-		return mrouter.MergeKeys(*_this.config.KeyPrefix, key)
+	if _this.Config.KeyPrefix != nil {
+		return mrouter.MergeKeys(*_this.Config.KeyPrefix, key)
 	}
 	return key
+}
+
+func (_this *BaseRedisClient) GetConfig() *RedisConfig {
+	return _this.Config
 }
 
 func (_this *BaseRedisClient) Set(ctx context.Context, key string, value interface{}, expiration time.Duration) *redis.StatusCmd {
@@ -75,7 +79,8 @@ func (_this *BaseRedisClient) DelWithPrefix(ctx context.Context, prefix string) 
 type IRedisClient interface {
 	redis.Cmdable // Embeds all Redis commands
 	//Close() error
-	//DelWithPrefix(ctx context.Context, prefix string) (int64, error)
+	GetConfig() *RedisConfig
+	DelWithPrefix(ctx context.Context, prefix string) (int64, error)
 	//Exist(ctx context.Context, key string) (bool, error)
 	//GetKeyName(key string) string
 	//GetChannelName(channel string) string

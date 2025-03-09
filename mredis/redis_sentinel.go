@@ -33,7 +33,7 @@ func NewRedisSentinelClient(config *RedisConfig) (IRedisClient, error) {
 
 	return &redisSentinelClient{
 		BaseRedisClient: &BaseRedisClient{
-			config:  config,
+			Config:  config,
 			Cmdable: rdb,
 		},
 		client: rdb,
