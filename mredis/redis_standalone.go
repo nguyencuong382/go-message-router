@@ -9,7 +9,6 @@ import (
 type redisCmd struct {
 	*BaseRedisClient
 	client *redis.Client
-	config *RedisConfig
 }
 
 func NewRedisStandaloneClient(config *RedisConfig) (IRedisClient, error) {
@@ -30,10 +29,10 @@ func NewRedisStandaloneClient(config *RedisConfig) (IRedisClient, error) {
 
 	return &redisCmd{
 		BaseRedisClient: &BaseRedisClient{
+			config:  config,
 			Cmdable: client,
 		},
 		client: client,
-		config: config,
 	}, nil
 }
 

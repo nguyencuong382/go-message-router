@@ -8,7 +8,6 @@ import (
 type redisSentinelClient struct {
 	*BaseRedisClient
 	client *redis.Client
-	config *RedisConfig
 }
 
 func NewRedisSentinelClient(config *RedisConfig) (IRedisClient, error) {
@@ -34,10 +33,10 @@ func NewRedisSentinelClient(config *RedisConfig) (IRedisClient, error) {
 
 	return &redisSentinelClient{
 		BaseRedisClient: &BaseRedisClient{
+			config:  config,
 			Cmdable: rdb,
 		},
 		client: rdb,
-		config: config,
 	}, nil
 }
 

@@ -7,7 +7,6 @@ import (
 
 type redisClusterClient struct {
 	*BaseRedisClient
-	config *RedisConfig
 	client *redis.ClusterClient
 }
 
@@ -31,66 +30,11 @@ func NewRedisClusterClient(config *RedisConfig) (IRedisClient, error) {
 	return &redisClusterClient{
 		BaseRedisClient: &BaseRedisClient{
 			Cmdable: rdb,
+			config:  config,
 		},
-		config: config,
 		client: rdb,
 	}, nil
 }
-
-//
-//func (_this *redisClusterClient) Ping(ctx context.Context) error {
-//	err := _this.client.ForEachShard(ctx, func(ctx context.Context, shard *redis.Client) error {
-//		return shard.Ping(ctx).Err()
-//	})
-//	return err
-//}
-//
-//func (_this *redisClusterClient) Set(ctx context.Context, key string, value interface{}, expireTime int64) error {
-//	return _this.client.Set(ctx, _this.GetKeyName(key), value, time.Duration(expireTime)*time.Second).Err()
-//}
-//
-//func (_this *redisClusterClient) Get(ctx context.Context, key string) *redis.StringCmd {
-//	return _this.client.Get(ctx, _this.GetKeyName(key))
-//}
-//
-//func (_this *redisClusterClient) Del(ctx context.Context, key string) (int64, error) {
-//	return _this.client.Del(ctx, _this.GetKeyName(key)).Result()
-//}
-//
-//func (_this *redisClusterClient) Expire(ctx context.Context, key string, expire int64) (bool, error) {
-//	value, err := _this.client.Expire(ctx, key, time.Duration(expire)*time.Second).Result()
-//	if err != nil {
-//		if err == redis.Nil {
-//			return false, nil
-//		}
-//		return false, err
-//	}
-//	return value, nil
-//}
-//
-//func (_this *redisClusterClient) Exist(ctx context.Context, key string) (bool, error) {
-//	value, err := _this.client.Exists(ctx, _this.GetKeyName(key)).Result()
-//	if err != nil {
-//		return false, err
-//	}
-//	return value == 1, nil
-//}
-//
-//func (_this *redisClusterClient) Incr(ctx context.Context, key string) (int64, error) {
-//	return _this.client.Incr(ctx, key).Result()
-//}
-//
-//func (_this *redisClusterClient) TTL(ctx context.Context, key string) (int64, error) {
-//	result, err := _this.client.TTL(ctx, _this.GetKeyName(key)).Result()
-//	if err != nil {
-//		return 0, err
-//	}
-//	return int64(result.Seconds()), nil
-//}
-//
-//func (_this *redisClusterClient) Publish(ctx context.Context, channel string, value interface{}) error {
-//	return _this.client.Publish(ctx, _this.GetChannelName(channel), value).Err()
-//}
 
 func (_this *redisClusterClient) Subscribe(ctx context.Context, channels ...string) *redis.PubSub {
 	var _channels []string
@@ -99,51 +43,3 @@ func (_this *redisClusterClient) Subscribe(ctx context.Context, channels ...stri
 	}
 	return _this.client.Subscribe(ctx, _channels...)
 }
-
-//func (_this *redisClusterClient) GetKeyName(key string) string {
-//	if _this.config.KeyPrefix != nil {
-//		return fmt.Sprintf("%s-%s", *_this.config.KeyPrefix, key)
-//	}
-//	return key
-//}
-//
-//func (_this *redisClusterClient) GetChannelName(key string) string {
-//	if _this.config.ChannelPrefix != nil {
-//		return fmt.Sprintf("%s-%s", *_this.config.ChannelPrefix, key)
-//	}
-//	return key
-//}
-//
-//func (_this *redisClusterClient) DelWithPrefix(ctx context.Context, prefix string) (int64, error) {
-//	var keysDeleted int64
-//
-//	// Initialize the cursor
-//	var cursor uint64
-//
-//	for {
-//		// Scan for keys with the specified prefix
-//		keys, nextCursor, err := _this.client.Scan(ctx, cursor, fmt.Sprintf("%s*", _this.GetKeyName(prefix)), 10).Result()
-//		if err != nil {
-//			return keysDeleted, err
-//		}
-//
-//		// Delete the keys
-//		for _, key := range keys {
-//			if err := _this.client.Del(ctx, key).Err(); err != nil {
-//				return keysDeleted, err
-//			} else {
-//				keysDeleted++
-//			}
-//		}
-//
-//		// Update the cursor for the next iteration
-//		cursor = nextCursor
-//
-//		// Check if we reached the end of the iteration
-//		if cursor == 0 {
-//			break
-//		}
-//	}
-//
-//	return keysDeleted, nil
-//}
