@@ -15,8 +15,7 @@ type BaseRedisClient struct {
 	redis.Cmdable
 }
 
-// Helper function to apply the prefix
-func (_this *BaseRedisClient) prefixedKey(key string) string {
+func (_this *BaseRedisClient) PrefixedKey(key string) string {
 	if _this.Config.KeyPrefix != nil {
 		return mrouter.MergeKeys(*_this.Config.KeyPrefix, key)
 	}
@@ -28,16 +27,16 @@ func (_this *BaseRedisClient) GetConfig() *RedisConfig {
 }
 
 func (_this *BaseRedisClient) Set(ctx context.Context, key string, value interface{}, expiration time.Duration) *redis.StatusCmd {
-	return _this.Cmdable.Set(ctx, _this.prefixedKey(key), value, expiration)
+	return _this.Cmdable.Set(ctx, _this.PrefixedKey(key), value, expiration)
 }
 
 func (_this *BaseRedisClient) Get(ctx context.Context, key string) *redis.StringCmd {
-	return _this.Cmdable.Get(ctx, _this.prefixedKey(key))
+	return _this.Cmdable.Get(ctx, _this.PrefixedKey(key))
 }
 
 func (_this *BaseRedisClient) Del(ctx context.Context, keys ...string) *redis.IntCmd {
 	for i, key := range keys {
-		keys[i] = _this.prefixedKey(key)
+		keys[i] = _this.PrefixedKey(key)
 	}
 	return _this.Cmdable.Del(ctx, keys...)
 }
@@ -50,7 +49,7 @@ func (_this *BaseRedisClient) DelWithPrefix(ctx context.Context, prefix string) 
 
 	for {
 		// Scan for keys with the specified prefix
-		keys, nextCursor, err := _this.Scan(ctx, cursor, fmt.Sprintf("%s*", _this.prefixedKey(prefix)), 10).Result()
+		keys, nextCursor, err := _this.Scan(ctx, cursor, fmt.Sprintf("%s*", _this.PrefixedKey(prefix)), 10).Result()
 		if err != nil {
 			return keysDeleted, err
 		}
@@ -81,6 +80,7 @@ type IRedisClient interface {
 	//Close() error
 	GetConfig() *RedisConfig
 	DelWithPrefix(ctx context.Context, prefix string) (int64, error)
+	PrefixedKey(key string) string
 	//Exist(ctx context.Context, key string) (bool, error)
 	//GetKeyName(key string) string
 	//GetChannelName(channel string) string

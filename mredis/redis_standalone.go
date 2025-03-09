@@ -39,7 +39,7 @@ func NewRedisStandaloneClient(config *RedisConfig) (IRedisClient, error) {
 func (_this *redisCmd) Subscribe(ctx context.Context, channels ...string) *redis.PubSub {
 	var _channels []string
 	for _, c := range channels {
-		_channels = append(_channels, _this.prefixedKey(c))
+		_channels = append(_channels, _this.PrefixedKey(c))
 	}
 	return _this.client.Subscribe(ctx, _channels...)
 }
