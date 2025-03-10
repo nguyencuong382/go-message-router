@@ -27,16 +27,20 @@ func NewRedisStandaloneClient(config *RedisConfig) (IRedisClient, error) {
 		return nil, err
 	}
 
-	return &redisCmd{
+	c := &redisCmd{
 		BaseRedisClient: &BaseRedisClient{
 			Config:  config,
 			Cmdable: client,
 		},
 		client: client,
-	}, nil
+	}
+
+	//client.AddHook(c)
+
+	return c, nil
 }
 
-func (_this *redisCmd) Subscribe(ctx context.Context, channels ...string) *redis.PubSub {
+func (_this *redisCmd) MrSubscribe(ctx context.Context, channels ...string) *redis.PubSub {
 	var _channels []string
 	for _, c := range channels {
 		_channels = append(_channels, _this.PrefixedKey(c))

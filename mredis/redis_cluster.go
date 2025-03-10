@@ -27,16 +27,20 @@ func NewRedisClusterClient(config *RedisConfig) (IRedisClient, error) {
 		return nil, err
 	}
 
-	return &redisClusterClient{
+	c := &redisClusterClient{
 		BaseRedisClient: &BaseRedisClient{
 			Cmdable: rdb,
 			Config:  config,
 		},
 		client: rdb,
-	}, nil
+	}
+
+	//rdb.AddHook(c)
+
+	return c, nil
 }
 
-func (_this *redisClusterClient) Subscribe(ctx context.Context, channels ...string) *redis.PubSub {
+func (_this *redisClusterClient) MrSubscribe(ctx context.Context, channels ...string) *redis.PubSub {
 	var _channels []string
 	for _, c := range channels {
 		_channels = append(_channels, _this.PrefixedKey(c))

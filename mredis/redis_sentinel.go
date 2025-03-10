@@ -31,16 +31,18 @@ func NewRedisSentinelClient(config *RedisConfig) (IRedisClient, error) {
 		return nil, err
 	}
 
-	return &redisSentinelClient{
+	c := &redisSentinelClient{
 		BaseRedisClient: &BaseRedisClient{
 			Config:  config,
 			Cmdable: rdb,
 		},
 		client: rdb,
-	}, nil
+	}
+
+	return c, nil
 }
 
-func (_this *redisSentinelClient) Subscribe(ctx context.Context, channels ...string) *redis.PubSub {
+func (_this *redisSentinelClient) MrSubscribe(ctx context.Context, channels ...string) *redis.PubSub {
 	var _channels []string
 	for _, c := range channels {
 		_channels = append(_channels, _this.PrefixedKey(c))

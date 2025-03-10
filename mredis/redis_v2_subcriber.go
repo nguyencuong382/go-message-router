@@ -29,7 +29,7 @@ func (_this *redisSubscriberV2) Open(channels []string) error {
 
 func (_this *redisSubscriberV2) Run(channels ...string) {
 	ctx := context.Background()
-	pubsub := _this.redis.Subscribe(ctx, channels...)
+	pubsub := _this.redis.MrSubscribe(ctx, channels...)
 
 	if _, err := pubsub.Receive(context.Background()); err != nil {
 		panic(errors.New(fmt.Sprintf("failed to receive from control PubSub %v", err)))

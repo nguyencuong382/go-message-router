@@ -37,7 +37,7 @@ func (_this *redisSubscriber) Open(channels []string) error {
 func (_this *redisSubscriber) Run(channels ...string) {
 	go func() {
 		ctx := context.Background()
-		subscriber := _this.redis.Subscribe(ctx, channels...)
+		subscriber := _this.redis.MrSubscribe(ctx, channels...)
 		for {
 			msg, err := subscriber.ReceiveMessage(ctx)
 			if err != nil {
