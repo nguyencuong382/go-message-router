@@ -61,6 +61,12 @@ func (_this *BaseRedisClient) MrTTL(ctx context.Context, key string) (int64, err
 }
 
 func (_this *BaseRedisClient) MrPublish(ctx context.Context, channel string, value interface{}) error {
+	_channel := _this.PrefixedKey(channel)
+
+	if _this.GetConfig().Debug {
+		fmt.Printf("Publish chanel: %v\n", _channel)
+	}
+
 	return _this.Publish(ctx, _this.PrefixedKey(channel), value).Err()
 }
 

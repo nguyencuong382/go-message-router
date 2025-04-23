@@ -32,4 +32,5 @@ type RedisConfig struct {
 	KeyPrefix        *string
 	ChannelPrefix    *string
 	Username         *string
+	Debug            bool
 }
