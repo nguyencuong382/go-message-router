@@ -5,12 +5,14 @@ import (
 	"errors"
 	"fmt"
 	"github.com/nguyencuong382/go-message-router/mrouter"
+	"log"
 )
 
 type redisSubscriberV2 struct {
 	routing mrouter.MessageRoutingFn
 	router  *mrouter.Engine
 	redis   IRedisClient
+	config  *mrouter.PubsubConfig
 }
 
 func NewRedisSubscriberV2(params RedisSubscriberArgs) mrouter.ISubscriber {
@@ -18,12 +20,14 @@ func NewRedisSubscriberV2(params RedisSubscriberArgs) mrouter.ISubscriber {
 		router:  params.Router,
 		routing: params.Routing,
 		redis:   params.Redis,
+		config:  params.Config.PubsubConfig,
 	}
 }
 
-func (_this *redisSubscriberV2) Open(channels []string) error {
+func (_this *redisSubscriberV2) Open() error {
 	_this.routing(_this.router)
-	_this.Run(channels...)
+	log.Printf("[Redis][V2] Subscribe channels: %v\n", _this.config.Channels)
+	_this.Run(_this.config.Channels...)
 	return nil
 }
 

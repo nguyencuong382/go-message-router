@@ -20,17 +20,3 @@ type IRedisClient interface {
 	MrPublish(ctx context.Context, channel string, value interface{}) error
 	MrSubscribe(ctx context.Context, channels ...string) *redis.PubSub
 }
-
-type RedisConfig struct {
-	Host             *string
-	Password         string
-	SentinelPassword *string
-	DB               int
-	Port             *string
-	Addrs            []string
-	MasterName       *string
-	KeyPrefix        *string
-	ChannelPrefix    *string
-	Username         *string
-	Debug            bool
-}

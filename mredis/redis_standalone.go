@@ -13,7 +13,7 @@ type redisCmd struct {
 
 func NewRedisStandaloneClient(config *RedisConfig) (IRedisClient, error) {
 	options := redis.Options{
-		Addr:     fmt.Sprintf("%s:%s", *config.Host, *config.Port),
+		Addr:     fmt.Sprintf("%s:%s", config.Host, config.Port),
 		Password: config.Password,
 		DB:       config.DB,
 	}
@@ -41,14 +41,5 @@ func NewRedisStandaloneClient(config *RedisConfig) (IRedisClient, error) {
 }
 
 func (_this *redisCmd) MrSubscribe(ctx context.Context, channels ...string) *redis.PubSub {
-	var _channels []string
-	for _, c := range channels {
-		_channels = append(_channels, _this.PrefixedKey(c))
-	}
-
-	if _this.GetConfig().Debug {
-		fmt.Printf("Subscribe channels: %v\n", _channels)
-	}
-
-	return _this.client.Subscribe(ctx, _channels...)
+	return _this.client.Subscribe(ctx, channels...)
 }

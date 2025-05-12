@@ -13,7 +13,7 @@ type kafkaSubscriber struct {
 	routing       mrouter.MessageRoutingFn
 	router        *mrouter.Engine
 	kafkaConsumer *kafka.Consumer
-	config        *KafkaConfig
+	config        *mrouter.PubsubConfig
 }
 
 type KafkaSubscriberArgs struct {
@@ -29,13 +29,14 @@ func NewKafkaSubscriber(params KafkaSubscriberArgs) mrouter.ISubscriber {
 		router:        params.Router,
 		routing:       params.Routing,
 		kafkaConsumer: params.KafkaConsumer,
-		config:        params.Config,
+		config:        params.Config.PubsubConfig,
 	}
 }
 
-func (_this *kafkaSubscriber) Open(channels []string) error {
+func (_this *kafkaSubscriber) Open() error {
 	_this.routing(_this.router)
-	_this.Run(channels...)
+	log.Printf("[Kafka] Subscribe channels: %v\n", _this.config.Channels)
+	_this.Run(_this.config.Channels...)
 	return nil
 }
 
@@ -59,28 +60,28 @@ func (_this *kafkaSubscriber) Run(channels ...string) {
 			}
 
 			//log.Info("Received msg on channel [", msg.Channel, "]")
-			fmt.Println("Received msg on channel [", msg.TopicPartition, "]")
+			log.Println("[Kafka] Received msg on channel [", msg.TopicPartition, "]")
 			rErr := _this.router.Route(*msg.TopicPartition.Topic, msg.Value)
 			if rErr != nil {
-				fmt.Println("Error when handling [", msg.String(), "]", rErr)
+				log.Println("[Kafka] Error when handling [", msg.String(), "]", rErr)
 				continue
 			}
 
 			if _this.config.ManualCommit {
 				_, cErr := _this.kafkaConsumer.Commit()
 				if cErr != nil {
-					log.Printf("Commit error: %v\n", cErr)
+					log.Printf("[Kafka] Commit error: %v\n", cErr)
 					continue
 				}
 			}
 
-			fmt.Println("Finish handle msg on channel [", msg.TopicPartition, "]")
+			log.Println("[Kafka] Finish handle msg on channel [", msg.TopicPartition, "]")
 
 		} else if !err.(kafka.Error).IsFatal() {
 			// The client will automatically try to recover from all errors.
 			// Timeout is not considered an error because it is raised by
 			// ReadMessage in absence of messages.
-			fmt.Printf("Consumer error: %v (%v)\n", err, msg)
+			log.Printf("[Kafka] Consumer error: %v (%v)\n", err, msg)
 		}
 	}
 	//}()

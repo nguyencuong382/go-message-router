@@ -14,8 +14,8 @@ type BaseRedisClient struct {
 }
 
 func (_this *BaseRedisClient) PrefixedKey(key string) string {
-	if _this.Config.KeyPrefix != nil {
-		return mrouter.MergeKeys(*_this.Config.KeyPrefix, key)
+	if _this.Config.ChannelPrefix != nil {
+		return mrouter.MergeKeys(*_this.Config.ChannelPrefix, key)
 	}
 	return key
 }
@@ -61,13 +61,7 @@ func (_this *BaseRedisClient) MrTTL(ctx context.Context, key string) (int64, err
 }
 
 func (_this *BaseRedisClient) MrPublish(ctx context.Context, channel string, value interface{}) error {
-	_channel := _this.PrefixedKey(channel)
-
-	if _this.GetConfig().Debug {
-		fmt.Printf("Publish chanel: %v\n", _channel)
-	}
-
-	return _this.Publish(ctx, _this.PrefixedKey(channel), value).Err()
+	return _this.Publish(ctx, channel, value).Err()
 }
 
 func (_this *BaseRedisClient) MrDelWithPrefix(ctx context.Context, prefix string) (int64, error) {

@@ -9,7 +9,7 @@ import (
 
 type kafkaPub struct {
 	kafkaProducer *kafka.Producer
-	config        *KafkaConfig
+	config        *mrouter.PubsubConfig
 }
 
 type KafkaPublishArgs struct {
@@ -21,7 +21,7 @@ type KafkaPublishArgs struct {
 func NewKafkaPublisher(args KafkaPublishArgs) mrouter.IPublisher {
 	return &kafkaPub{
 		kafkaProducer: args.KafkaProducer,
-		config:        args.Config,
+		config:        args.Config.PubsubConfig,
 	}
 }
 
@@ -38,8 +38,8 @@ func (_this *kafkaPub) Publish(req *mrouter.PublishReq) error {
 	}
 
 	topic := req.Channel
-	if _this.config.KeyPrefix != nil {
-		topic = mrouter.MergeKeys(*_this.config.KeyPrefix, topic)
+	if _this.config.ChannelPrefix != nil {
+		topic = mrouter.MergeKeys(*_this.config.ChannelPrefix, topic)
 	}
 
 	msg := kafka.Message{

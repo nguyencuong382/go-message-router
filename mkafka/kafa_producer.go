@@ -7,7 +7,7 @@ import (
 
 func NewKafkaProducer(config *KafkaConfig) (*kafka.Producer, error) {
 	configMap := kafka.ConfigMap{
-		"bootstrap.servers": fmt.Sprintf("%s:%d", config.Host, config.Port),
+		"bootstrap.servers": fmt.Sprintf("%s:%s", config.Host, config.Port),
 	}
 	kafkaC, err := kafka.NewProducer(&configMap)
 	return kafkaC, err

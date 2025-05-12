@@ -2,6 +2,7 @@ package mrouter
 
 import (
 	"encoding/json"
+	"log"
 )
 
 type HandlerFunc func(ctx *Context) error
@@ -42,6 +43,9 @@ func (_this *Engine) Route(channel string, message []byte) error {
 	} else {
 		value = message
 	}
+
+	log.Println("Routing:", channel, req.Func)
+
 	if handler, ok := _this.Handlers[req.Func]; ok {
 		return handler(WithValue(value))
 	}

@@ -2,7 +2,6 @@ package mredis
 
 import (
 	"context"
-	"fmt"
 	"github.com/redis/go-redis/v9"
 )
 
@@ -42,14 +41,5 @@ func NewRedisClusterClient(config *RedisConfig) (IRedisClient, error) {
 }
 
 func (_this *redisClusterClient) MrSubscribe(ctx context.Context, channels ...string) *redis.PubSub {
-	var _channels []string
-	for _, c := range channels {
-		_channels = append(_channels, _this.PrefixedKey(c))
-	}
-
-	if _this.GetConfig().Debug {
-		fmt.Printf("Subscribe channels: %v\n", _channels)
-	}
-
-	return _this.client.Subscribe(ctx, _channels...)
+	return _this.client.Subscribe(ctx, channels...)
 }

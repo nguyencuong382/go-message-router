@@ -5,20 +5,9 @@ import (
 	"github.com/confluentinc/confluent-kafka-go/kafka"
 )
 
-type KafkaConfig struct {
-	Host            string
-	Port            int
-	Group           *string
-	AutoOffsetReset *string
-	ExtConfig       map[string]interface{}
-	Topics          []string
-	ManualCommit    bool
-	KeyPrefix       *string
-}
-
 func NewKafkaConsumer(config *KafkaConfig) (*kafka.Consumer, error) {
 	configMap := kafka.ConfigMap{
-		"bootstrap.servers": fmt.Sprintf("%s:%d", config.Host, config.Port),
+		"bootstrap.servers": fmt.Sprintf("%s:%s", config.Host, config.Port),
 		"auto.offset.reset": "earliest",
 	}
 
