@@ -29,7 +29,7 @@ func NewKafkaSubscriber(params KafkaSubscriberArgs) mrouter.ISubscriber {
 		router:        params.Router,
 		routing:       params.Routing,
 		kafkaConsumer: params.KafkaConsumer,
-		config:        params.Config.PubsubConfig,
+		config:        &params.Config.PubsubConfig,
 	}
 }
 

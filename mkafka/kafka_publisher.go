@@ -21,7 +21,7 @@ type KafkaPublishArgs struct {
 func NewKafkaPublisher(args KafkaPublishArgs) mrouter.IPublisher {
 	return &kafkaPub{
 		kafkaProducer: args.KafkaProducer,
-		config:        args.Config.PubsubConfig,
+		config:        &args.Config.PubsubConfig,
 	}
 }
 
