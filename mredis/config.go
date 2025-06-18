@@ -8,6 +8,5 @@ type RedisConfig struct {
 	Username         *string
 	SentinelPassword *string
 	DB               int
-	Addrs            []string
 	MasterName       *string
 }

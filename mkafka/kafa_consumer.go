@@ -1,13 +1,14 @@
 package mkafka
 
 import (
-	"fmt"
 	"github.com/confluentinc/confluent-kafka-go/kafka"
+	"log"
+	"strings"
 )
 
 func NewKafkaConsumer(config *KafkaConfig) (*kafka.Consumer, error) {
 	configMap := kafka.ConfigMap{
-		"bootstrap.servers": fmt.Sprintf("%s:%s", config.Host, config.Port),
+		"bootstrap.servers": strings.Join(config.Hosts, ","),
 		"auto.offset.reset": "earliest",
 	}
 
@@ -29,5 +30,8 @@ func NewKafkaConsumer(config *KafkaConfig) (*kafka.Consumer, error) {
 	}
 
 	kafkaC, err := kafka.NewConsumer(&configMap)
+	if err == nil {
+		log.Println("[Kafka] Connected to Kafka Consumer", config.Hosts, "- csg:", configMap["group.id"])
+	}
 	return kafkaC, err
 }

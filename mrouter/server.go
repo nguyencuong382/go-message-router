@@ -17,8 +17,9 @@ type IPublisher interface {
 }
 
 type PubsubConfig struct {
-	Host            string
-	Port            string
+	Host            *string
+	Port            *string
+	Hosts           []string
 	Channels        []string
 	ChannelPrefix   *string
 	ManualCommit    bool

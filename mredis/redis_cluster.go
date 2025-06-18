@@ -12,7 +12,7 @@ type redisClusterClient struct {
 
 func NewRedisClusterClient(config *RedisConfig) (IRedisClient, error) {
 	options := redis.ClusterOptions{
-		Addrs:    config.Addrs,
+		Addrs:    config.Hosts,
 		Password: config.Password,
 	}
 	if config.Username != nil {

@@ -13,7 +13,7 @@ type redisSentinelClient struct {
 func NewRedisSentinelClient(config *RedisConfig) (IRedisClient, error) {
 
 	options := redis.FailoverOptions{
-		SentinelAddrs: config.Addrs,
+		SentinelAddrs: config.Hosts,
 		Password:      config.Password,
 	}
 	if config.Username != nil {

@@ -2,7 +2,6 @@ package mredis
 
 import (
 	"context"
-	"fmt"
 	"github.com/redis/go-redis/v9"
 )
 
@@ -13,7 +12,7 @@ type redisCmd struct {
 
 func NewRedisStandaloneClient(config *RedisConfig) (IRedisClient, error) {
 	options := redis.Options{
-		Addr:     fmt.Sprintf("%s:%s", config.Host, config.Port),
+		Addr:     config.Hosts[0],
 		Password: config.Password,
 		DB:       config.DB,
 	}
