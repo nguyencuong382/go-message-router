@@ -5,11 +5,12 @@ type ISubscriber interface {
 }
 
 type PublishReq struct {
-	ID      string
-	Channel string
-	Value   interface{}
-	Json    bool
-	URL     string
+	ID            string
+	Channel       string
+	Value         interface{}
+	Json          bool
+	URL           string
+	TimeoutSecond int64
 }
 
 type IPublisher interface {
