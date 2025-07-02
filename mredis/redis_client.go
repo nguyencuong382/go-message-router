@@ -19,4 +19,5 @@ type IRedisClient interface {
 	MrTTL(ctx context.Context, key string) (int64, error)
 	MrPublish(ctx context.Context, channel string, value interface{}) error
 	MrSubscribe(ctx context.Context, channels ...string) *redis.PubSub
+	MrClose() error
 }

@@ -3,15 +3,26 @@ package mrouter
 import (
 	"context"
 	"encoding/json"
+	"sync"
 )
 
 type Context struct {
-	ctx context.Context
+	ctx          context.Context
+	AppCtx       context.Context
+	AppWaitGroup *sync.WaitGroup
 }
 
 func WithValue(value interface{}) *Context {
 	return &Context{
 		ctx: context.WithValue(context.Background(), "data", value),
+	}
+}
+
+func WithAppContextValue(args *OpenServerArgs, value interface{}) *Context {
+	return &Context{
+		AppCtx:       args.AppCtx,
+		AppWaitGroup: args.AppWaitGroup,
+		ctx:          context.WithValue(context.Background(), "data", value),
 	}
 }
 

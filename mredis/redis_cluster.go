@@ -18,7 +18,6 @@ func NewRedisClusterClient(config *RedisConfig) (IRedisClient, error) {
 	if config.Username != nil {
 		options.Username = *config.Username
 	}
-
 	rdb := redis.NewClusterClient(&options)
 
 	ctx := context.Background()
@@ -42,4 +41,8 @@ func NewRedisClusterClient(config *RedisConfig) (IRedisClient, error) {
 
 func (_this *redisClusterClient) MrSubscribe(ctx context.Context, channels ...string) *redis.PubSub {
 	return _this.client.Subscribe(ctx, channels...)
+}
+
+func (_this *redisClusterClient) MrClose() error {
+	return _this.client.Close()
 }

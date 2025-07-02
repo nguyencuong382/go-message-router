@@ -1,7 +1,19 @@
 package mrouter
 
+import (
+	"context"
+	"log"
+	"sync"
+)
+
+type OpenServerArgs struct {
+	AppCtx       context.Context
+	AppWaitGroup *sync.WaitGroup
+	Channels     []string
+}
+
 type ISubscriber interface {
-	Open() error
+	Open(args *OpenServerArgs) error
 }
 
 type PublishReq struct {
@@ -36,4 +48,12 @@ func (_this *PubsubConfig) SetChannels(channels []string) {
 		_channels = append(_channels, MergeKeys(*_this.ChannelPrefix, c))
 	}
 	_this.Channels = _channels
+}
+
+func (_this *PubsubConfig) GetChannels(channels ...string) []string {
+	if len(channels) > 0 {
+		log.Printf("Override channels: %v -> %v\n", _this.Channels, channels)
+		return channels
+	}
+	return _this.Channels
 }

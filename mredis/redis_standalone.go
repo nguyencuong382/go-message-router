@@ -42,3 +42,7 @@ func NewRedisStandaloneClient(config *RedisConfig) (IRedisClient, error) {
 func (_this *redisCmd) MrSubscribe(ctx context.Context, channels ...string) *redis.PubSub {
 	return _this.client.Subscribe(ctx, channels...)
 }
+
+func (_this *redisCmd) MrClose() error {
+	return _this.client.Close()
+}

@@ -32,7 +32,7 @@ func (_this *Engine) RegisterChannelFunction(channel string, _func string, handl
 	_this.ChannelHandler[channel][_func] = handler
 }
 
-func (_this *Engine) Route(channel string, message []byte) error {
+func (_this *Engine) Route(args *OpenServerArgs, channel string, message []byte) error {
 	var (
 		req   Message
 		value interface{}
@@ -47,19 +47,19 @@ func (_this *Engine) Route(channel string, message []byte) error {
 	log.Println("Routing:", channel, req.Func)
 
 	if handler, ok := _this.Handlers[req.Func]; ok {
-		return handler(WithValue(value))
+		return handler(WithAppContextValue(args, value))
 	}
 	if _channel, ok := _this.ChannelHandler[channel]; ok {
 		if handler, ok := _channel[req.Func]; ok {
-			return handler(WithValue(value))
+			return handler(WithAppContextValue(args, value))
 		}
 	}
-	return _this.RouteChannel(channel, value)
+	return _this.RouteChannel(args, channel, value)
 }
 
-func (_this *Engine) RouteChannel(_channel string, value interface{}) error {
+func (_this *Engine) RouteChannel(args *OpenServerArgs, _channel string, value interface{}) error {
 	if handler, ok := _this.Handlers[_channel]; ok {
-		return handler(WithValue(value))
+		return handler(WithAppContextValue(args, value))
 	}
 	return nil
 }
