@@ -106,7 +106,7 @@ func (_this *kafkaSubscriber) Run(args *mrouter.OpenServerArgs) {
 				}
 			}
 
-			log.Println("[Kafka] Finish handle msg on channel [", msg.TopicPartition, "]", fmt.Sprintf("elapsed: %v", time.Since(starTime)))
+			log.Println("[Kafka] Finish handle msg on channel [", msg.TopicPartition, "]", fmt.Sprintf("elapsed: %v", time.Since(starTime).String()))
 		}
 	}
 }
