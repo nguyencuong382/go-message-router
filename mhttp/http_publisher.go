@@ -31,7 +31,7 @@ func NewHttpPublisher(args HttpPublishArgs) mrouter.IPublisher {
 	}
 }
 
-func (_this *httpPub) Publish(req *mrouter.PublishReq) error {
+func (_this *httpPub) Publish(req *mrouter.PublishReq) (int64, error) {
 	// Create a Resty Client
 	client := resty.New()
 
@@ -56,5 +56,5 @@ func (_this *httpPub) Publish(req *mrouter.PublishReq) error {
 		SetHeader("Content-Type", "application/json").
 		SetBody(req.Value).
 		Post(fmt.Sprintf("%s/%s", _this.Config.URL, req.URL))
-	return err
+	return 0, err
 }

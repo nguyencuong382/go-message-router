@@ -7,9 +7,10 @@ import (
 )
 
 type OpenServerArgs struct {
-	AppCtx       context.Context
-	AppWaitGroup *sync.WaitGroup
-	Channels     []string
+	AppCtx              context.Context
+	AppWaitGroup        *sync.WaitGroup
+	Channels            []string
+	MaxConcurrentWorker int
 }
 
 type ISubscriber interface {
@@ -26,7 +27,7 @@ type PublishReq struct {
 }
 
 type IPublisher interface {
-	Publish(req *PublishReq) error
+	Publish(req *PublishReq) (int64, error)
 }
 
 type PubsubConfig struct {

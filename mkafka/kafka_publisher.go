@@ -28,13 +28,13 @@ func NewKafkaPublisher(args KafkaPublishArgs) mrouter.IPublisher {
 	}
 }
 
-func (_this *kafkaPub) Publish(req *mrouter.PublishReq) error {
+func (_this *kafkaPub) Publish(req *mrouter.PublishReq) (int64, error) {
 	var b1ByteValue []byte
 	var err error
 	if req.Json {
 		b1ByteValue, err = json.Marshal(req.Value)
 		if err != nil {
-			return err
+			return -1, err
 		}
 	} else {
 		b1ByteValue = req.Value.([]byte)
@@ -61,7 +61,7 @@ func (_this *kafkaPub) Publish(req *mrouter.PublishReq) error {
 
 	err = _this.kafkaProducer.Produce(&msg, deliveryChan)
 	if err != nil {
-		return err
+		return -1, err
 	}
 
 	if req.TimeoutSecond > 0 {
@@ -69,19 +69,17 @@ func (_this *kafkaPub) Publish(req *mrouter.PublishReq) error {
 		case e := <-deliveryChan:
 			m := e.(*kafka.Message)
 			if m.TopicPartition.Error != nil {
-				return fmt.Errorf("delivery failed: %w", m.TopicPartition.Error)
+				return -1, fmt.Errorf("delivery failed: %w", m.TopicPartition.Error)
 			} else {
+				offset := int64(m.TopicPartition.Offset)
 				log.Println("[Kafka] Published message", m)
+				return offset, nil
 			}
 		case <-time.After(time.Duration(req.TimeoutSecond) * time.Second):
-			return fmt.Errorf("delivery timeout after %ds", req.TimeoutSecond)
+			return -1, fmt.Errorf("delivery timeout after %ds", req.TimeoutSecond)
 		}
-
-		close(deliveryChan)
 	}
 
-	// Wait for message deliveries before shutting down
-	//_this.kafkaProducer.Flush(15 * 1000)
-
-	return nil
+	// If no timeout configured, offset is unknown at this point
+	return -1, nil
 }
