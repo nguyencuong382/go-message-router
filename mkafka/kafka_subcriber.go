@@ -92,7 +92,7 @@ func (_this *kafkaSubscriber) Run(args *mrouter.OpenServerArgs) {
 			}
 
 			log.Println("[Kafka] Received msg on channel [", msg.TopicPartition, "]")
-			rErr := _this.router.Route(args, *msg.TopicPartition.Topic, msg.Value)
+			rErr := _this.router.Route(args, *msg.TopicPartition.Topic, msg.Value, int64(msg.TopicPartition.Offset))
 			if rErr != nil {
 				log.Println("[Kafka] Error when handling [", msg.String(), "]", rErr)
 				continue

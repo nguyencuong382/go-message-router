@@ -44,7 +44,7 @@ func (_this *redisSubscriberV2) Run(args *mrouter.OpenServerArgs) {
 
 		// Endlessly listen to control channel,
 		for msg := range controlCh {
-			err := _this.router.Route(args, msg.Channel, []byte(msg.Payload))
+			err := _this.router.Route(args, msg.Channel, []byte(msg.Payload), 0)
 			if err != nil {
 				fmt.Println("Error when handling [", msg.Channel, "]", err)
 			}

@@ -140,7 +140,7 @@ func (_this *kafkaMultiSubscriber) Run(args *mrouter.OpenServerArgs) {
 
 				go func(worker *TopicWorker, msg *kafka.Message) {
 					defer func() { <-Semaphore }() // release slot
-					rErr := _this.router.Route(args, *msg.TopicPartition.Topic, msg.Value)
+					rErr := _this.router.Route(args, *msg.TopicPartition.Topic, msg.Value, int64(msg.TopicPartition.Offset))
 					if rErr != nil {
 						log.Println("[Kafka] Error when handling [", msg.String(), "]", rErr)
 						return

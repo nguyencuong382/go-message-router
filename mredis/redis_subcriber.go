@@ -73,7 +73,7 @@ func (_this *redisSubscriber) Run(args *mrouter.OpenServerArgs) {
 			switch interface{}(msg).(type) {
 			case *redis.Message:
 				log.Println("[Redis] Received msg on channel [", msg.Channel, "]")
-				err := _this.router.Route(args, msg.Channel, []byte(msg.Payload))
+				err := _this.router.Route(args, msg.Channel, []byte(msg.Payload), 0)
 				if err != nil {
 					log.Println("[Redis] Error when handling [", msg.Channel, "]", err)
 				} else {

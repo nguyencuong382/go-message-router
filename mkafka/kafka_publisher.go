@@ -44,6 +44,7 @@ func (_this *kafkaPub) Publish(req *mrouter.PublishReq) (int64, error) {
 	if _this.config.ChannelPrefix != nil {
 		topic = mrouter.MergeKeys(*_this.config.ChannelPrefix, topic)
 	}
+	log.Printf("[Kafka] Publishing message %s to %v:%s\n", req.ID, _this.config.Hosts, topic)
 
 	msg := kafka.Message{
 		TopicPartition: kafka.TopicPartition{Topic: &topic, Partition: kafka.PartitionAny},

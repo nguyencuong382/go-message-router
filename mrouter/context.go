@@ -10,6 +10,7 @@ type Context struct {
 	ctx          context.Context
 	AppCtx       context.Context
 	AppWaitGroup *sync.WaitGroup
+	Offset       int64
 }
 
 func WithValue(value interface{}) *Context {
@@ -18,11 +19,12 @@ func WithValue(value interface{}) *Context {
 	}
 }
 
-func WithAppContextValue(args *OpenServerArgs, value interface{}) *Context {
+func WithAppContextValue(args *OpenServerArgs, value interface{}, offset int64) *Context {
 	return &Context{
 		AppCtx:       args.AppCtx,
 		AppWaitGroup: args.AppWaitGroup,
 		ctx:          context.WithValue(context.Background(), "data", value),
+		Offset:       offset,
 	}
 }
 
