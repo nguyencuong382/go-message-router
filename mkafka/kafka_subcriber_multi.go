@@ -10,12 +10,14 @@ import (
 	"time"
 
 	"github.com/confluentinc/confluent-kafka-go/kafka"
+	lru "github.com/hashicorp/golang-lru/v2"
 )
 
 type kafkaMultiSubscriber struct {
-	routing mrouter.MessageRoutingFn
-	router  *mrouter.Engine
-	config  *KafkaConfig
+	routing  mrouter.MessageRoutingFn
+	router   *mrouter.Engine
+	config   *KafkaConfig
+	seenKeys *lru.Cache[string, struct{}]
 }
 
 type KafkaMultiSubscriberArgs struct {
@@ -26,10 +28,12 @@ type KafkaMultiSubscriberArgs struct {
 }
 
 func NewKafkaMultiSubscriber(params KafkaMultiSubscriberArgs) mrouter.ISubscriber {
+	cache, _ := lru.New[string, struct{}](100_000) // max 100,000 keys
 	return &kafkaMultiSubscriber{
-		router:  params.Router,
-		routing: params.Routing,
-		config:  params.Config,
+		router:   params.Router,
+		routing:  params.Routing,
+		config:   params.Config,
+		seenKeys: cache,
 	}
 }
 
@@ -47,8 +51,6 @@ func (_this *kafkaMultiSubscriber) Open(args *mrouter.OpenServerArgs) error {
 type TopicWorker struct {
 	Topic    string
 	Consumer *kafka.Consumer
-	//MaxConcurrent int
-	//Semaphore     chan struct{} // concurrency limiter
 }
 
 func (_this *kafkaMultiSubscriber) Run(args *mrouter.OpenServerArgs) {
@@ -70,8 +72,6 @@ func (_this *kafkaMultiSubscriber) Run(args *mrouter.OpenServerArgs) {
 		workers = append(workers, &TopicWorker{
 			Topic:    topic,
 			Consumer: consumer,
-			//MaxConcurrent: limit,
-			//Semaphore:     make(chan struct{}, limit),
 		})
 	}
 
@@ -120,12 +120,29 @@ func (_this *kafkaMultiSubscriber) Run(args *mrouter.OpenServerArgs) {
 					log.Printf("[Kafka] Fatal error: %v\n", err)
 					return
 				}
+				log.Println("[Kafka] Received msg on channel [", msg.TopicPartition, "]", string(msg.Key))
 
-				// Acquire slot
+				// 🧠 Deduplication check
+				msgKeyStr := string(msg.Key)
+				if msgKeyStr != "" {
+					if _, exists := _this.seenKeys.Get(msgKeyStr); exists {
+						log.Printf("[Kafka] Skipping duplicated %v: %s\n", msg.TopicPartition, msgKeyStr)
+						if _this.config.ManualCommit {
+							_, cErr := w.Consumer.CommitMessage(msg)
+							if cErr != nil {
+								log.Printf("[Kafka] Commit error for duplicated msg: %v", cErr)
+							} else {
+								log.Printf("[Kafka] Committed offset for duplicated key: %s\n", msgKeyStr)
+							}
+						}
+						continue
+					}
+					_this.seenKeys.Add(msgKeyStr, struct{}{})
+				}
+
 				Semaphore <- struct{}{}
 				handled = true
 
-				// Đoạn xử lý message như cũ
 				starTime := time.Now()
 
 				if _this.config.ManualCommit {
@@ -135,8 +152,6 @@ func (_this *kafkaMultiSubscriber) Run(args *mrouter.OpenServerArgs) {
 						continue
 					}
 				}
-
-				log.Println("[Kafka] Received msg on channel [", msg.TopicPartition, "]")
 
 				go func(worker *TopicWorker, msg *kafka.Message) {
 					defer func() { <-Semaphore }() // release slot
