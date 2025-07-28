@@ -105,6 +105,14 @@ func (_this *kafkaMultiSubscriber) Run(args *mrouter.OpenServerArgs) {
 			handled := false
 
 			for _, w := range workers {
+				select {
+				case <-ctx.Done():
+					log.Println("[Kafka] Context canceled during topic iteration")
+					return
+				default:
+					// continue to read message
+				}
+
 				msg, err := w.Consumer.ReadMessage(100 * time.Millisecond)
 				if err != nil {
 					// Nếu là timeout thì bỏ qua, tiếp tục loop
