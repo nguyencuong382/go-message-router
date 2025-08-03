@@ -105,6 +105,14 @@ func (_this *kafkaMultiSubscriber) Run(args *mrouter.OpenServerArgs) {
 			handled := false
 
 			for _, w := range workers {
+				select {
+				case <-ctx.Done():
+					log.Println("[Kafka] Context canceled during topic iteration")
+					return
+				default:
+					// continue to read message
+				}
+
 				msg, err := w.Consumer.ReadMessage(100 * time.Millisecond)
 				if err != nil {
 					// Nếu là timeout thì bỏ qua, tiếp tục loop
@@ -122,23 +130,23 @@ func (_this *kafkaMultiSubscriber) Run(args *mrouter.OpenServerArgs) {
 				}
 				log.Println("[Kafka] Received msg on channel [", msg.TopicPartition, "]", string(msg.Key))
 
-				// 🧠 Deduplication check
-				msgKeyStr := string(msg.Key)
-				if msgKeyStr != "" {
-					if _, exists := _this.seenKeys.Get(msgKeyStr); exists {
-						log.Printf("[Kafka] Skipping duplicated %v: %s\n", msg.TopicPartition, msgKeyStr)
-						if _this.config.ManualCommit {
-							_, cErr := w.Consumer.CommitMessage(msg)
-							if cErr != nil {
-								log.Printf("[Kafka] Commit error for duplicated msg: %v", cErr)
-							} else {
-								log.Printf("[Kafka] Committed offset for duplicated key: %s\n", msgKeyStr)
-							}
-						}
-						continue
-					}
-					_this.seenKeys.Add(msgKeyStr, struct{}{})
-				}
+				//// 🧠 Deduplication check
+				//msgKeyStr := string(msg.Key)
+				//if msgKeyStr != "" {
+				//	if _, exists := _this.seenKeys.Get(msgKeyStr); exists {
+				//		log.Printf("[Kafka] Skipping duplicated %v: %s\n", msg.TopicPartition, msgKeyStr)
+				//		if _this.config.ManualCommit {
+				//			_, cErr := w.Consumer.CommitMessage(msg)
+				//			if cErr != nil {
+				//				log.Printf("[Kafka] Commit error for duplicated msg: %v", cErr)
+				//			} else {
+				//				log.Printf("[Kafka] Committed offset for duplicated key: %s\n", msgKeyStr)
+				//			}
+				//		}
+				//		continue
+				//	}
+				//	_this.seenKeys.Add(msgKeyStr, struct{}{})
+				//}
 
 				Semaphore <- struct{}{}
 				handled = true
