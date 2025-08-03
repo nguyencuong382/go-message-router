@@ -3,9 +3,9 @@ package mhttp
 import (
 	"crypto/tls"
 	"fmt"
-	"github.com/go-resty/resty/v2"
 	"github.com/nguyencuong382/go-message-router/mrouter"
 	"go.uber.org/dig"
+	"resty.dev/v3"
 	"time"
 )
 
