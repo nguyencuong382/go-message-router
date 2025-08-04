@@ -170,7 +170,7 @@ func (_this *kafkaMultiSubscriber) Run(args *mrouter.OpenServerArgs) {
 					}
 
 					if _this.config.ManualCommit {
-						log.Printf("[Kafka] Committing offset for %v: %s\n", msg.TopicPartition, msgKeyStr)
+						//log.Printf("[Kafka] Committing offset for %v: %s\n", msg.TopicPartition, msgKeyStr)
 						_, cErr := worker.Consumer.Commit()
 						if cErr != nil {
 							log.Printf("[Kafka] Commit error: %v", cErr)
