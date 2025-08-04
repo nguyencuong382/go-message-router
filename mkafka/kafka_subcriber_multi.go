@@ -7,6 +7,7 @@ import (
 	"go.uber.org/dig"
 	"log"
 	"os"
+	"sync/atomic"
 	"time"
 
 	"github.com/confluentinc/confluent-kafka-go/kafka"
@@ -18,6 +19,7 @@ type kafkaMultiSubscriber struct {
 	router   *mrouter.Engine
 	config   *KafkaConfig
 	seenKeys *lru.Cache[string, struct{}]
+	closed   atomic.Bool
 }
 
 type KafkaMultiSubscriberArgs struct {
@@ -76,6 +78,8 @@ func (_this *kafkaMultiSubscriber) Run(args *mrouter.OpenServerArgs) {
 	}
 
 	defer func() {
+		_this.closed.Store(true)
+
 		log.Println("[Kafka] Closing consumers...")
 		for _, w := range workers {
 			if err := w.Consumer.Close(); err != nil {
@@ -84,7 +88,6 @@ func (_this *kafkaMultiSubscriber) Run(args *mrouter.OpenServerArgs) {
 				log.Printf("[Kafka] Consumer for topic %s closed", w.Topic)
 			}
 		}
-
 	}()
 
 	log.Println("[Kafka] 🚀 Started concurrent consumer")
@@ -111,6 +114,11 @@ func (_this *kafkaMultiSubscriber) Run(args *mrouter.OpenServerArgs) {
 					return
 				default:
 					// continue to read message
+				}
+
+				if _this.closed.Load() {
+					log.Println("[Kafka] Closed, stopping topic iteration")
+					return
 				}
 
 				msg, err := w.Consumer.ReadMessage(100 * time.Millisecond)
@@ -170,6 +178,10 @@ func (_this *kafkaMultiSubscriber) Run(args *mrouter.OpenServerArgs) {
 					}
 
 					if _this.config.ManualCommit {
+						if _this.closed.Load() {
+							log.Println("[Kafka] Closed, stopping commit")
+							return
+						}
 						//log.Printf("[Kafka] Committing offset for %v: %s\n", msg.TopicPartition, msgKeyStr)
 						_, cErr := worker.Consumer.Commit()
 						if cErr != nil {
