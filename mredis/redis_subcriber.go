@@ -55,21 +55,27 @@ func (_this *redisSubscriber) Run(args *mrouter.OpenServerArgs) {
 		//}
 	}()
 
+	ch := subscriber.Channel()
+
 	for {
 		select {
 		case <-ctx.Done():
 			log.Println("[Redis] Context canceled, stopping Redis subscriber loop")
 			return
-		default:
-			msg, err := subscriber.ReceiveMessage(ctx)
-			if err != nil {
-				// Nếu context bị huỷ thì không panic
-				if ctx.Err() != nil {
-					log.Println("[Redis] ReceiveMessage stopped:", ctx.Err())
-					return
-				}
-				panic(err)
+		case msg, ok := <-ch:
+			if !ok {
+				log.Println("[Redis] Channel closed")
+				return
 			}
+			//msg, err := subscriber.ReceiveMessage(ctx)
+			//if err != nil {
+			//	// Nếu context bị huỷ thì không panic
+			//	if ctx.Err() != nil {
+			//		log.Println("[Redis] ReceiveMessage stopped:", ctx.Err())
+			//		return
+			//	}
+			//	panic(err)
+			//}
 			switch interface{}(msg).(type) {
 			case *redis.Message:
 				log.Println("[Redis] Received msg on channel [", msg.Channel, "]")
