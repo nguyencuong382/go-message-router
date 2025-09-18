@@ -6,40 +6,35 @@ import (
 	"github.com/nguyencuong382/go-message-router/mrouter"
 	"go.uber.org/dig"
 	"log"
-	"os"
 	"sync/atomic"
 	"time"
 
 	"github.com/confluentinc/confluent-kafka-go/kafka"
-	lru "github.com/hashicorp/golang-lru/v2"
 )
 
-type kafkaMultiSubscriber struct {
-	routing  mrouter.MessageRoutingFn
-	router   *mrouter.Engine
-	config   *KafkaConfig
-	seenKeys *lru.Cache[string, struct{}]
-	closed   atomic.Bool
+type kafkaMultiTopicsPrioritySubscriber struct {
+	routing mrouter.MessageRoutingFn
+	router  *mrouter.Engine
+	config  *KafkaConfig
+	closed  atomic.Bool
 }
 
-type KafkaMultiSubscriberArgs struct {
+type KafkaMultiTopicsPrioritySubscriberArgs struct {
 	dig.In
 	Routing mrouter.MessageRoutingFn
 	Router  *mrouter.Engine
 	Config  *KafkaConfig
 }
 
-func NewKafkaMultiSubscriber(params KafkaMultiSubscriberArgs) mrouter.ISubscriber {
-	cache, _ := lru.New[string, struct{}](100_000) // max 100,000 keys
-	return &kafkaMultiSubscriber{
-		router:   params.Router,
-		routing:  params.Routing,
-		config:   params.Config,
-		seenKeys: cache,
+func NewKafkaMultiTopicsPrioritySubscriber(params KafkaMultiTopicsPrioritySubscriberArgs) mrouter.ISubscriber {
+	return &kafkaMultiTopicsPrioritySubscriber{
+		router:  params.Router,
+		routing: params.Routing,
+		config:  params.Config,
 	}
 }
 
-func (_this *kafkaMultiSubscriber) Open(args *mrouter.OpenServerArgs) error {
+func (_this *kafkaMultiTopicsPrioritySubscriber) Open(args *mrouter.OpenServerArgs) error {
 	_this.routing(_this.router)
 	args.Channels = _this.config.GetChannels(args.Channels...)
 	if args.MaxConcurrentWorker == 0 {
@@ -53,42 +48,23 @@ func (_this *kafkaMultiSubscriber) Open(args *mrouter.OpenServerArgs) error {
 type TopicWorker struct {
 	Topic    string
 	Consumer *kafka.Consumer
+	Config   *KafkaConfig
 }
 
-func (_this *kafkaMultiSubscriber) Run(args *mrouter.OpenServerArgs) {
+func (_this *kafkaMultiTopicsPrioritySubscriber) Run(args *mrouter.OpenServerArgs) {
 	ctx := args.AppCtx
 	var workers []*TopicWorker
 
 	for _, topic := range args.Channels {
-		consumer, err := NewKafkaConsumer(_this.config)
-		if err != nil {
-			fmt.Printf("Failed to create consumer for %s: %v\n", topic, err)
-			os.Exit(1)
-		}
-
-		if err := consumer.Subscribe(topic, nil); err != nil {
-			fmt.Printf("Failed to subscribe to topic %s: %v\n", topic, err)
-			os.Exit(1)
-		}
-
+		consumer := CreateKafkaConsumer(_this.config, topic)
 		workers = append(workers, &TopicWorker{
 			Topic:    topic,
 			Consumer: consumer,
+			Config:   _this.config,
 		})
 	}
 
-	defer func() {
-		_this.closed.Store(true)
-
-		log.Println("[Kafka] Closing consumers...")
-		for _, w := range workers {
-			if err := w.Consumer.Close(); err != nil {
-				log.Printf("[Kafka] Error closing consumer: %v", err)
-			} else {
-				log.Printf("[Kafka] Consumer for topic %s closed", w.Topic)
-			}
-		}
-	}()
+	defer CloseWorker(workers...)
 
 	log.Println("[Kafka] 🚀 Started concurrent consumer")
 
