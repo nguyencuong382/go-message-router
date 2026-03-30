@@ -8,6 +8,7 @@ import (
 
 type Context struct {
 	ctx          context.Context
+	cancel       context.CancelFunc
 	AppCtx       context.Context
 	AppWaitGroup *sync.WaitGroup
 	Offset       int64
@@ -20,10 +21,17 @@ func WithValue(value interface{}) *Context {
 }
 
 func WithAppContextValue(args *OpenServerArgs, value interface{}, offset int64) *Context {
+	parent := context.Background()
+	ctx, cancel := context.WithCancel(parent)
+
+	// attach value AFTER creating cancelable context
+	ctx = context.WithValue(ctx, "data", value)
+
 	return &Context{
 		AppCtx:       args.AppCtx,
 		AppWaitGroup: args.AppWaitGroup,
-		ctx:          context.WithValue(context.Background(), "data", value),
+		ctx:          ctx,
+		cancel:       cancel,
 		Offset:       offset,
 	}
 }
@@ -44,4 +52,8 @@ func (_this *Context) BindData(param interface{}) error {
 
 func (_this *Context) Context() context.Context {
 	return _this.ctx
+}
+
+func (_this *Context) Cancel() {
+	_this.cancel()
 }

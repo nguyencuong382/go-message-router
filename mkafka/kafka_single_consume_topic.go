@@ -7,14 +7,18 @@ import (
 	"github.com/nguyencuong382/go-message-router/mrouter"
 	"log"
 	"os"
+	"sync"
 	"time"
 )
 
 func ConsumeSingleTopic(
+	wgConsumers *sync.WaitGroup,
 	args *mrouter.OpenServerArgs,
 	worker *TopicWorker,
 	router *mrouter.Engine,
 ) {
+	defer wgConsumers.Done()
+
 	ctx := args.AppCtx
 
 	for {
@@ -37,6 +41,14 @@ func ConsumeSingleTopic(
 			}
 			log.Printf("[Kafka] Fatal error on topic %s: %v\n", worker.Topic, err)
 			return
+		}
+
+		// ✅ check ctx again after message
+		select {
+		case <-ctx.Done():
+			log.Printf("[Kafka] Stop consuming %s (after message)", worker.Topic)
+			return
+		default:
 		}
 
 		startTime := time.Now()
@@ -86,14 +98,16 @@ func CreateKafkaConsumer(config *KafkaConfig, topics ...string) *kafka.Consumer 
 	if err != nil {
 		fmt.Printf("Failed to subscribe to topic %v: %v\n", topics, err)
 		os.Exit(1)
+	} else {
+		log.Printf("[Kafka] Subscribed to topic(s) %v\n", topics)
 	}
 
 	return consumer
 }
 
 func CloseWorker(workers ...*TopicWorker) {
-	log.Println("[Kafka] Closing consumers...")
 	for _, w := range workers {
+		log.Printf("[Kafka] Closing consumer... %v", w.Topic)
 		if err := w.Consumer.Close(); err != nil {
 			log.Printf("[Kafka] Error closing consumer: %v", err)
 		} else {

@@ -5,6 +5,7 @@ import (
 	"go.uber.org/dig"
 	"log"
 	"strings"
+	"sync"
 )
 
 type kafkaSubscriber struct {
@@ -38,6 +39,7 @@ func (_this *kafkaSubscriber) Open(args *mrouter.OpenServerArgs) error {
 
 func (_this *kafkaSubscriber) Run(args *mrouter.OpenServerArgs) {
 	consumer := CreateKafkaConsumer(_this.config, args.Channels...)
+	var wgConsumers sync.WaitGroup
 
 	worker := &TopicWorker{
 		Topic:    strings.Join(args.Channels, ","),
@@ -54,5 +56,7 @@ func (_this *kafkaSubscriber) Run(args *mrouter.OpenServerArgs) {
 		}
 	}()
 
-	ConsumeSingleTopic(args, worker, _this.router)
+	wgConsumers.Add(1)
+	ConsumeSingleTopic(&wgConsumers, args, worker, _this.router)
+	wgConsumers.Wait()
 }

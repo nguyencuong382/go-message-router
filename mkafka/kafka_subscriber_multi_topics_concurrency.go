@@ -4,6 +4,7 @@ import (
 	"github.com/nguyencuong382/go-message-router/mrouter"
 	"go.uber.org/dig"
 	"log"
+	"sync"
 )
 
 type kafkaMultiTopicsConcurrencySubscriber struct {
@@ -41,6 +42,7 @@ func (_this *kafkaMultiTopicsConcurrencySubscriber) Open(args *mrouter.OpenServe
 func (_this *kafkaMultiTopicsConcurrencySubscriber) Run(args *mrouter.OpenServerArgs) {
 	ctx := args.AppCtx
 	var workers []*TopicWorker
+	var wgConsumers sync.WaitGroup
 
 	for _, topic := range args.Channels {
 		consumer := CreateKafkaConsumer(_this.config, topic)
@@ -51,16 +53,20 @@ func (_this *kafkaMultiTopicsConcurrencySubscriber) Run(args *mrouter.OpenServer
 		})
 	}
 
-	defer CloseWorker(workers...)
-
 	log.Println("[Kafka] 🚀 Started consumers, one worker per topic")
 
 	// Start one goroutine per topic
 	for _, w := range workers {
-		go ConsumeSingleTopic(args, w, _this.router)
+		wgConsumers.Add(1)
+		go ConsumeSingleTopic(&wgConsumers, args, w, _this.router)
 	}
 
 	// Block until context is canceled
 	<-ctx.Done()
 	log.Println("[Kafka] Context canceled, stopping all topic workers")
+
+	wgConsumers.Wait()
+
+	CloseWorker(workers...)
+
 }
