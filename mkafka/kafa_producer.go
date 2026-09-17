@@ -14,9 +14,10 @@ func NewKafkaProducer(config *KafkaConfig) (*kafka.Producer, error) {
 	// Apply extra librdkafka options (e.g. security.protocol / ssl.* for a TLS proxy
 	// like kroxylicious). Mirrors NewKafkaConsumer — without this the producer could
 	// never enable SSL, only the consumer could.
-	for k, v := range config.ExtConfig {
-		configMap[k] = v
-	}
+	//
+	// Consumer-only keys are skipped: ExtConfig is shared with the consumer, so
+	// without the filter librdkafka logs a CONFWARN per key and ignores it.
+	applyExtConfig(configMap, config.ExtConfig, true)
 
 	kafkaC, err := kafka.NewProducer(&configMap)
 	if err == nil {

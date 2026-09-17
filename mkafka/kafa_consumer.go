@@ -25,9 +25,7 @@ func NewKafkaConsumer(config *KafkaConfig) (*kafka.Consumer, error) {
 		configMap["enable.auto.commit"] = false
 	}
 
-	for k, v := range config.ExtConfig {
-		configMap[k] = v
-	}
+	applyExtConfig(configMap, config.ExtConfig, false)
 
 	kafkaC, err := kafka.NewConsumer(&configMap)
 	if err == nil {
